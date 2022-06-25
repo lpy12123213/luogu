@@ -1,8 +1,10 @@
+import threading
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 import requests
 from bs4 import BeautifulSoup
 import re,os
+from PyQt5.QtGui import QTextCursor
 url__ = "https://www.luogu.com.cn/problem/"
 
 def geshihua(text):
@@ -25,9 +27,13 @@ def do(p, i):
     except:
         pass
     u=url__+p
-    response = requests.get('https://www.luogu.com.cn/problem/P4068', headers={
+    response = requests.get(f'https://www.luogu.com.cn/problem/{p}{i}', headers={
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.124 Safari/537.36 Edg/102.0.1245.44'
     })
+    try:
+        response.raise_for_status()
+    except:
+        return f"啊哦，网站成了{str(response)}了"
     html = response.text
     response.close()
     # print(html)
@@ -52,13 +58,14 @@ class Ui_Widget(object):
         self.leixin.setFrame(False)
         self.leixin.setObjectName("leixin")
         self.out = QtWidgets.QTextEdit(Widget)
-        self.out.setEnabled(False)
+        # self.out.setEnabled(False)
         self.out.setGeometry(QtCore.QRect(160, 250, 481, 171))
-        self.out.setMouseTracking(True)
-        self.out.setAcceptDrops(True)
-        self.out.setTabChangesFocus(False)
+        # self.out.setMouseTracking(True)
+        # self.out.setAcceptDrops(True)
+        # self.out.setTabChangesFocus(False)
         self.out.setReadOnly(True)
-        self.out.setOverwriteMode(False)
+        # self.out.setOverwriteMode(False)
+        # self.out.moveCursor(QTextCursor.End)
         self.out.setObjectName("out")
         self.gridLayoutWidget = QtWidgets.QWidget(Widget)
         self.gridLayoutWidget.setGeometry(QtCore.QRect(159, 100, 481, 80))
@@ -110,16 +117,20 @@ class Ui_Widget(object):
         self.label_4.setText(_translate("Widget", "就只是一个简简单单的洛谷爬行器"))
         self.clean.setText(_translate("Widget", "清除"))
     def main(self):
-        p = self.leixin.text()
-        try:
-            s = int(self.start.text())
-            e = int(self.end.text())
-        except ValueError:
-            self.out.append('A~O~输入的开始与结束不可以是string类哦！')
-        else:
-            for i in range(s, e+1):
-                self.out.append(do(p, i))
-            self.out.append('爬取完毕')
+        def do_():
+            p = self.leixin.text()
+            try:
+                s = int(self.start.text())
+                e = int(self.end.text())
+            except ValueError:
+                self.out.append('A~O~输入的开始与结束不可以是string类哦！')
+            else:
+                for i in range(s, e+1):
+                    self.out.append(do(p, i))
+                self.out.append('爬取完毕')
+        t0ob=threading.Thread(target=do_)
+        t0ob.start()
+        # t0ob.join()
 
 
 if __name__ == '__main__':
